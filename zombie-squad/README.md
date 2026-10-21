@@ -35,18 +35,56 @@ src/
   style.css  모바일 세로 레이아웃 (safe-area 대응)
 ```
 
-## 모바일 앱으로 패키징 (Capacitor)
+## 모바일 앱 (Capacitor)
+
+Capacitor 설정과 네이티브 프로젝트가 이미 들어 있습니다.
+
+- 앱 ID: `com.bqblgames.zsquad` (마켓에 한 번 올리면 바꿀 수 없으니 출시 전에 확정하세요 → `capacitor.config.ts`, `android/app/build.gradle`, Xcode)
+- `android/` — Android Studio 프로젝트 (세로 고정, minSdk 24 / targetSdk 36)
+- `ios/` — Xcode 프로젝트 (세로 고정)
+- `assets/` — 아이콘·스플래시 원본. 바꾼 뒤 `npx @capacitor/assets generate --android --ios --iconBackgroundColor '#14171c' --splashBackgroundColor '#14171c'`
+
+웹 코드를 고친 뒤에는 항상:
 
 ```bash
-npm install @capacitor/core @capacitor/cli @capacitor/android @capacitor/ios
-npx cap init "Z-Squad" com.bqblgames.zsquad --web-dir dist
-npm run build
-npx cap add android && npx cap add ios
-npx cap sync
-npx cap open android   # Android Studio에서 빌드
+npm run build && npx cap sync
+npx cap open android   # Android Studio (실행 ▶ 버튼으로 휴대폰에 설치)
+npx cap open ios       # Xcode (Mac 필요)
 ```
 
-`vite.config.ts`의 `base: './'` 덕분에 WebView에서도 경로가 깨지지 않습니다.
+### GitHub Actions 자동 빌드
+
+`zombie-squad/`가 바뀐 커밋을 푸시하면 **Android build** 워크플로가 돌아서 결과물을 올려 줍니다.
+GitHub 저장소 → Actions → 해당 실행 → 하단 *Artifacts*에서 내려받으세요.
+
+| 결과물 | 용도 |
+| --- | --- |
+| `z-squad-debug-apk` | 휴대폰에 바로 설치해서 테스트 (zip을 풀고 `.apk` 실행, "출처를 알 수 없는 앱" 허용 필요) |
+| `z-squad-release-aab` | Google Play Console 업로드용. 아래 서명 시크릿이 있어야 서명된 파일이 됩니다 |
+
+`versionCode`는 실행 번호(`github.run_number`)로 자동 증가합니다.
+
+**iOS build check** 워크플로는 수동 실행(Actions → Run workflow)이며 서명 없이 시뮬레이터용으로 컴파일만 확인합니다.
+App Store 제출용 빌드는 Mac의 Xcode에서 Product → Archive로 만듭니다.
+
+### 안드로이드 출시 서명 설정 (한 번만)
+
+```bash
+keytool -genkey -v -keystore release.keystore -alias zsquad -keyalg RSA -keysize 2048 -validity 10000
+base64 -w0 release.keystore > release.keystore.b64   # macOS: base64 -i release.keystore
+```
+
+GitHub 저장소 → Settings → Secrets and variables → Actions에 추가:
+
+| 이름 | 값 |
+| --- | --- |
+| `ANDROID_KEYSTORE_BASE64` | `release.keystore.b64` 내용 |
+| `ANDROID_KEYSTORE_PASSWORD` | 키스토어 비밀번호 |
+| `ANDROID_KEY_ALIAS` | `zsquad` |
+| `ANDROID_KEY_PASSWORD` | 키 비밀번호 |
+
+⚠️ `release.keystore` 파일과 비밀번호는 저장소에 올리지 말고 안전한 곳에 백업하세요.
+Play 앱 서명을 쓰면 이 키는 "업로드 키"가 되어 분실 시 재설정할 수 있지만, 그래도 잃어버리지 않는 게 좋습니다.
 
 ## 다음 단계 아이디어
 
