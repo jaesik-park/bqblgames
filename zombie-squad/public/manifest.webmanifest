@@ -1,0 +1,10 @@
+{
+  "name": "Z-Squad: 최후의 생존자",
+  "short_name": "Z-Squad",
+  "start_url": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#14171c",
+  "theme_color": "#14171c",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+}
