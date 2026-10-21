@@ -379,7 +379,14 @@ function handleAction(el: HTMLElement): void {
       hideModal();
       break;
     case 'reset':
-      if (confirm('모든 진행 상황을 삭제할까요?')) state = resetState();
+      showModal(`<h2>데이터 초기화</h2><div class="muted">모든 진행 상황을 삭제할까요?</div>
+        <div class="row"><button class="btn ghost" data-action="close">취소</button>
+        <button class="btn primary" data-action="reset-confirm">삭제</button></div>`);
+      return;
+    case 'reset-confirm':
+      state = resetState();
+      hideModal();
+      toast('초기화했습니다');
       break;
   }
   if (err) toast(err);
